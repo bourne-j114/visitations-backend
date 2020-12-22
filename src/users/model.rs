@@ -1,13 +1,11 @@
-use crate::api_error::ApiError;
-use crate::{db, constants};
-use crate::schema::users;
-use argon2::Config;
 use chrono::{NaiveDateTime, Local};
 use diesel::prelude::*;
-use rand::Rng;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 use bcrypt::{hash, verify, DEFAULT_COST};
+use crate::api_error::ApiError;
+use crate::{db, constants};
+use crate::schema::users;
 use crate::users::UserToken;
 
 #[derive(Serialize, Deserialize, AsChangeset)]
@@ -120,11 +118,12 @@ impl Users {
     }
 
     pub fn hash_password(&mut self) -> Result<(), ApiError> {
-        let salt: [u8; 32] = rand::thread_rng().gen();
-        let config = Config::default();
+        // let salt: [u8; 32] = rand::thread_rng().gen();
+        // let config = Config::default();
+        // self.password = argon2::hash_encoded(self.password.as_bytes(), &salt, &config)
+        //     .map_err(|e| ApiError::new(500, format!("Failed to hash password: {}", e)))?;
 
-        self.password = argon2::hash_encoded(self.password.as_bytes(), &salt, &config)
-            .map_err(|e| ApiError::new(500, format!("Failed to hash password: {}", e)))?;
+        self.password = hash(&self.password.clone(), DEFAULT_COST).unwrap();
 
         Ok(())
     }
@@ -133,10 +132,10 @@ impl Users {
         Uuid::new_v4().simple().to_string()
     }
 
-    pub fn verify_password(&self, password: &[u8]) -> Result<bool, ApiError> {
-        argon2::verify_encoded(&self.password, password)
-            .map_err(|e| ApiError::new(500, format!("Failed to verify password: {}", e)))
-    }
+    // pub fn verify_password(&self, password: &[u8]) -> Result<bool, ApiError> {
+    //     argon2::verify_encoded(&self.password, password)
+    //         .map_err(|e| ApiError::new(500, format!("Failed to verify password: {}", e)))
+    // }
 
     pub fn login(user: UsersMessage) -> Option<UsersInfo> {
         let conn = db::connection().unwrap();
