@@ -20,6 +20,8 @@ mod visitors;
 mod schema;
 mod utils;
 mod users;
+mod prisons;
+mod visits;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -50,10 +52,11 @@ async fn main() -> std::io::Result<()> {
                 .max_age(3600)
             )
             .wrap(actix_web::middleware::Logger::default())
-            .wrap(crate::middleware::authen_middleware::Authentication)
+           // .wrap(crate::middleware::authen_middleware::Authentication)
             .configure(auth::init_routes)
             .configure(users::init_routes)
             .configure(visitors::init_routes)
+            .configure(prisons::init_routes)
 
     ).bind(format!("{}:{}", host, port))?
         .run().await

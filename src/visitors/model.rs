@@ -1,4 +1,4 @@
-use chrono::NaiveDateTime;
+use chrono::{NaiveDateTime, Local};
 use diesel::prelude::*;
 use serde::{Deserialize, Serialize};
 
@@ -6,42 +6,54 @@ use crate::api_error::ApiError;
 use crate::{db};
 use crate::schema::visitors;
 
-#[derive(Debug, Clone, Serialize, Deserialize, Queryable, Identifiable)]
+#[derive(Serialize, Deserialize, Queryable, Insertable)]
 #[table_name = "visitors"]
 pub struct Visitors {
-    pub id: i32,
-    name: String,
-    address1: String,
-    address2: String,
-    post_code: String,
-    id_number: String,
-    gender: String,
-    phone_number: String,
-    created_at: NaiveDateTime,
-    updated_at: Option<NaiveDateTime>,
+    pub visitor_id: i32,
+    pub prison_id: String,
+    pub gender: String,
+    pub first_name: String,
+    pub last_name: String,
+    pub relations: String,
+    pub phone_num: String,
+    pub line_id: String,
+    pub remark: String,
+    pub created_at: NaiveDateTime,
+    pub updated_at: Option<NaiveDateTime>,
+}
+
+#[derive(Serialize, Deserialize, Queryable, Insertable)]
+#[table_name = "visitors"]
+pub struct VisitorsInsert {
+    pub gender: String,
+    pub prison_id: String,
+    pub first_name: String,
+    pub last_name: String,
+    pub relations: String,
+    pub phone_num: String,
+    pub line_id: String,
+    pub remark: String,
+    pub created_at: NaiveDateTime,
+    pub updated_at: Option<NaiveDateTime>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Insertable, AsChangeset)]
+#[table_name = "visitors"]
+pub struct VisitorsMessage {
+    pub gender: String,
+    pub prison_id: String,
+    pub first_name: String,
+    pub last_name: String,
+    pub relations: String,
+    pub phone_num: String,
+    pub line_id: String,
+    pub remark: String,
 }
 
 impl Visitors {
-    pub fn new(name: String,
-               address1: String,
-               address2: String,
-               post_code: String,
-               id_number: String,
-               gender: String,
-               phone_number: String,) -> VisitorsMessage {
-        VisitorsMessage {
-            name,
-            address1,
-            address2,
-            post_code,
-            id_number,
-            gender,
-            phone_number
-        }
-    }
 
     pub fn find_all() -> Result<Vec<Self>, ApiError> {
-        let conn = db::connection().unwrap();
+        let conn = db::connection()?;
 
         let visitor_list = visitors::table
             .load::<Visitors>(&conn)?;
@@ -53,17 +65,36 @@ impl Visitors {
         let conn = db::connection()?;
 
         let visitor = visitors::table
-            .filter(visitors::id.eq(id))
+            .filter(visitors::visitor_id.eq(id))
             .first(&conn)?;
 
         Ok(visitor)
     }
 
-    pub fn find_by_name(name: String) -> Result<Self, ApiError> {
+    pub fn find_family_and_friend(id: String) -> Result<Vec<Self>, ApiError> {
+        let conn = db::connection()?;
+
+        let visitors = visitors::table
+            .filter(visitors::prison_id.eq(id))
+            .load::<Visitors>(&conn)?;
+        Ok(visitors)
+    }
+
+    pub fn find_by_first_name(first_name: String) -> Result<Self, ApiError> {
         let conn = db::connection()?;
 
         let visitor = visitors::table
-            .filter(visitors::name.like(format!("%{}%", name)))
+            .filter(visitors::first_name.like(format!("%{}%", first_name)))
+            .first(&conn)?;
+
+        Ok(visitor)
+    }
+
+    pub fn find_by_last_name(last_name: String) -> Result<Self, ApiError> {
+        let conn = db::connection()?;
+
+        let visitor = visitors::table
+            .filter(visitors::last_name.like(format!("%{}%", last_name)))
             .first(&conn)?;
 
         Ok(visitor)
@@ -71,18 +102,24 @@ impl Visitors {
 
 
     pub fn create(visitors_message: VisitorsMessage) -> Result<Self, ApiError> {
-        visitors_message.insert()
+        let conn = db::connection().unwrap();
+        let visitors_message = VisitorsInsert::from(visitors_message);
+        let new_visitor = diesel::insert_into(visitors::table)
+            .values(&visitors_message)
+            .get_result(&conn)?;
+
+        Ok(new_visitor)
     }
 
     pub fn update(id: i32, visitors_message: VisitorsMessage) -> Result<Self, ApiError> {
         let conn = db::connection()?;
 
-        let user = diesel::update(visitors::table)
-            .filter(visitors::id.eq(id))
+        let visitor = diesel::update(visitors::table)
+            .filter(visitors::visitor_id.eq(id))
             .set(visitors_message)
             .get_result(&conn)?;
 
-        Ok(user)
+        Ok(visitor)
     }
 
     pub fn delete(id: i32) -> Result<usize, ApiError> {
@@ -90,7 +127,7 @@ impl Visitors {
 
         let res = diesel::delete(
             visitors::table
-                .filter(visitors::id.eq(id))
+                .filter(visitors::visitor_id.eq(id))
         )
             .execute(&conn)?;
 
@@ -98,27 +135,21 @@ impl Visitors {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Insertable, AsChangeset)]
-#[table_name = "visitors"]
-pub struct VisitorsMessage {
-    pub name: String,
-    pub address1: String,
-    pub address2: String,
-    pub post_code: String,
-    pub id_number: String,
-    pub gender: String,
-    pub phone_number: String,
-}
 
-impl VisitorsMessage {
-    pub fn insert(&self) -> Result<Visitors, ApiError> {
-        let conn = db::connection().unwrap();
-        let visitors_message = self.clone();
-        let new_visitor = diesel::insert_into(visitors::table)
-            .values(&visitors_message)
-            .get_result(&conn)?;
-        
-        Ok(new_visitor)
-        
+
+impl From<VisitorsMessage> for VisitorsInsert {
+    fn from(visitors_message: VisitorsMessage) -> Self {
+        VisitorsInsert {
+            gender: visitors_message.gender,
+            prison_id: visitors_message.prison_id,
+            first_name:visitors_message.first_name,
+            last_name: visitors_message.last_name,
+            relations: visitors_message.relations,
+            phone_num: visitors_message.phone_num,
+            line_id: visitors_message.line_id,
+            remark: visitors_message.remark,
+            created_at: Local::now().naive_local(),
+            updated_at: None,
+        }
     }
 }
