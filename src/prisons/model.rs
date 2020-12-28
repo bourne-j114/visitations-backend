@@ -48,6 +48,13 @@ pub struct PrisonLocation {
     pub updated_at: Option<NaiveDateTime>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PrisonLocationMessage {
+    pub prison_id: String,
+    pub location: String,
+
+}
+
 impl Prisons {
 
     pub fn find_all() -> Result<Vec<Self>, ApiError> {
@@ -125,10 +132,11 @@ impl Prisons {
 
 
 impl PrisonLocation {
-    pub fn update(prison_id: String, prison_location: PrisonLocation) -> Result<Prisons, ApiError> {
+    pub fn update(prison_location_message: PrisonLocationMessage) -> Result<Prisons, ApiError> {
         let conn = db::connection()?;
+        let prison_location = PrisonLocation::from(prison_location_message.clone());
         let update_prison = diesel::update(prisons::table)
-            .filter(prisons::prison_id.eq(prison_id))
+            .filter(prisons::prison_id.eq(prison_location_message.prison_id))
             .set(prison_location)
             .get_result(&conn)?;
 
@@ -146,6 +154,14 @@ impl PrisonsMessage {
             .get_result(&conn)?;
         
         Ok(new_prison)
+    }
+}
+impl From<PrisonLocationMessage> for PrisonLocation {
+    fn from(prison_location_message: PrisonLocationMessage) -> Self {
+        PrisonLocation {
+            location: prison_location_message.location,
+            updated_at: Some(Local::now().naive_local()),
+        }
     }
 }
 
