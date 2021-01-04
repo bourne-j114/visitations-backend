@@ -37,7 +37,7 @@ pub struct VisitorsInsert {
     pub updated_at: Option<NaiveDateTime>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Insertable, AsChangeset)]
+#[derive(Default, Debug, Clone, Serialize, Deserialize, Insertable, AsChangeset)]
 #[table_name = "visitors"]
 pub struct VisitorsMessage {
     pub gender: String,
@@ -89,6 +89,7 @@ impl Visitors {
 
         Ok(visitor)
     }
+
 
     pub fn find_by_last_name(last_name: String) -> Result<Self, ApiError> {
         let conn = db::connection()?;

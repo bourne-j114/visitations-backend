@@ -2,8 +2,9 @@ use crate::api_error::ApiError;
 
 use actix_web::{delete, get, post, put, web, HttpResponse};
 use serde_json::json;
-use crate::prisons::{Prisons, PrisonsMessage, PrisonLocation, PrisonLocationMessage};
+use crate::prisons::{Prisons, PrisonsMessage, PrisonLocation, PrisonLocationMessage, import_family_and_friends};
 use crate::visitors::Visitors;
+use std::error::Error;
 
 #[get("/list")]
 async fn prisons_list_all() -> Result<HttpResponse, ApiError> {
@@ -15,6 +16,12 @@ async fn prisons_list_all() -> Result<HttpResponse, ApiError> {
 async fn prisons_create(user: web::Json<PrisonsMessage>) -> Result<HttpResponse, ApiError> {
     let user = Prisons::create(user.into_inner())?;
     Ok(HttpResponse::Ok().json(user))
+}
+
+#[get("/import")]
+async fn import() -> Result<HttpResponse, ApiError> {
+     import_family_and_friends().await.unwrap();
+    Ok(HttpResponse::Ok().json(json!({ "OK": "1" })))
 }
 
 #[get("/get/{id}")]
@@ -48,5 +55,6 @@ pub fn init_routes(cfg: &mut web::ServiceConfig) {
             .service(prisons_create)
             .service(prisons_update_location)
             .service(prisons_delete)
+            .service(import)
     );
 }

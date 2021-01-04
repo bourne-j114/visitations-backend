@@ -7,8 +7,10 @@ use crate::{db};
 use crate::schema::prisons;
 use crate::schema::visitors;
 use crate::visitors::Visitors;
+use diesel::dsl::sql;
+use diesel::sql_types::Bool;
 
-#[derive(Serialize, Deserialize, Queryable, Insertable)]
+#[derive(PartialEq, Debug, Serialize, Deserialize, Queryable, Insertable)]
 #[table_name = "prisons"]
 pub struct Prisons {
     pub prison_id: String,
@@ -26,7 +28,7 @@ pub struct Prisons {
 }
 
 
-#[derive(Debug, Clone, Serialize, Deserialize, Insertable, AsChangeset)]
+#[derive(Default, Debug, Clone, Serialize, Deserialize, Insertable, AsChangeset)]
 #[table_name = "prisons"]
 pub struct PrisonsMessage {
     pub prison_id: String,
@@ -95,7 +97,6 @@ impl Prisons {
 
         Ok(prison)
     }
-
 
     pub fn create(prisons_message: PrisonsMessage) -> Result<Self, ApiError> {
         let conn = db::connection().unwrap();

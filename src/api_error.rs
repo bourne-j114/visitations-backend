@@ -41,6 +41,12 @@ impl From<PayloadError> for ApiError {
         ApiError::new(400, error.to_string())
     }
 }
+impl From<csv::Error> for ApiError {
+    fn from(error: csv::Error) -> ApiError {
+        ApiError::new(400, "CSV Err".to_string())
+    }
+}
+
 
 impl From<ActixError> for ApiError {
     fn from(error: ActixError) -> ApiError {
