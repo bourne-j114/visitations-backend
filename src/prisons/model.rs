@@ -9,8 +9,9 @@ use crate::schema::visitors;
 use crate::visitors::Visitors;
 use diesel::dsl::sql;
 use diesel::sql_types::Bool;
+use diesel::sql_query;
 
-#[derive(PartialEq, Debug, Serialize, Deserialize, Queryable, Insertable)]
+#[derive(PartialEq,QueryableByName, Debug, Serialize, Deserialize, Queryable, Insertable)]
 #[table_name = "prisons"]
 pub struct Prisons {
     pub prison_id: String,
@@ -57,15 +58,29 @@ pub struct PrisonLocationMessage {
 
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PrisonsSlim {
+    pub prison_id: String,
+    pub full_name: String,
+}
+
+
+
 impl Prisons {
 
-    pub fn find_all() -> Result<Vec<Self>, ApiError> {
+    pub fn find_all() -> Result<Vec<PrisonsSlim>, ApiError> {
         let conn = db::connection()?;
-
-        let prison_list = prisons::table
-            .load::<Prisons>(&conn)?;
-
-        Ok(prison_list)
+        let prison_list: Vec<Prisons> = sql_query("SELECT * FROM prisons ORDER BY prison_id")
+            .load(&conn)?;
+        let mut prison_vec = vec![];
+        for v in prison_list{
+            let tmp = PrisonsSlim{
+                prison_id: v.prison_id,
+                full_name: format!("{} {}",v.first_name,v.last_name),
+            };
+            prison_vec.push(tmp);
+        }
+        Ok(prison_vec)
     }
 
     pub fn find(id: String) -> Result<Self, ApiError> {

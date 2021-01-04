@@ -8,8 +8,8 @@ use std::error::Error;
 
 #[get("/list")]
 async fn prisons_list_all() -> Result<HttpResponse, ApiError> {
-    let users = Prisons::find_all()?;
-    Ok(HttpResponse::Ok().json(users))
+    let prisons = Prisons::find_all()?;
+    Ok(HttpResponse::Ok().json(prisons))
 }
 
 #[post("/create")]
