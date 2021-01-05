@@ -47,15 +47,19 @@ impl Visits {
     pub fn is_visited(prison_id: String)-> Result<bool, ApiError>{
         let conn = db::connection()?;
         let prison = Prisons::find(prison_id.clone())?;
-        let mut rs = false;
+        let mut rs = true;
+        let visit:Visits = visits::table
+            .filter(visits::prison_id.eq(prison_id))
+            .order(visit_date.desc())
+            .first(&conn)?;
+        let visited_date= visit.visit_date.format("%Y-%m-%d").to_string();
         if prison.prison_type == 0 {
-            let visit:Visits = visits::table
-                .filter(visits::prison_id.eq(prison_id))
-                .order(visit_date.desc())
-                .first(&conn)?;
-
-            let visited_date= visit.visit_date.format("%Y-%m-%d").to_string();
             rs = verify(visited_date);
+        }else{
+            let today= Local::now().naive_local().format("%Y-%m-%d").to_string();
+            if today == visited_date {
+                rs = true;
+            }
         }
         Ok(rs)
     }
