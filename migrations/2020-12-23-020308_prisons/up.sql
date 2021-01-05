@@ -6,6 +6,7 @@ create table if not exists prisons
     first_name VARCHAR(100) NOT NULL,
     last_name VARCHAR(100) NOT NULL,
     location VARCHAR(50) NOT NULL,
+    prison_type smallint NOT NULL DEFAULT 0,
     case_detail VARCHAR(500) NOT NULL,
     punish VARCHAR(200) NOT NULL,
     remark   VARCHAR(200) NOT NULL,

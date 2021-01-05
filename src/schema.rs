@@ -5,6 +5,7 @@ table! {
         first_name -> Varchar,
         last_name -> Varchar,
         location -> Varchar,
+        prison_type -> Int2,
         case_detail -> Varchar,
         punish -> Varchar,
         remark -> Varchar,
@@ -46,7 +47,7 @@ table! {
     visits (id) {
         id -> Uuid,
         prison_id -> Varchar,
-        visitor_id -> Int4,
+        visitor_name -> Varchar,
         visit_date -> Timestamp,
         start_time -> Timestamp,
         stop_time -> Timestamp,

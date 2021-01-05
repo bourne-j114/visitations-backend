@@ -4,6 +4,7 @@ use actix_web::{delete, get, post, put, web, HttpResponse};
 use serde_json::json;
 use crate::prisons::{Prisons, PrisonsMessage, PrisonLocation, PrisonLocationMessage, import_family_and_friends};
 use crate::visitors::Visitors;
+use crate::visits::Visits;
 use std::error::Error;
 
 #[get("/list")]
@@ -20,7 +21,7 @@ async fn prisons_create(user: web::Json<PrisonsMessage>) -> Result<HttpResponse,
 
 #[get("/import")]
 async fn import() -> Result<HttpResponse, ApiError> {
-     import_family_and_friends().await.unwrap();
+    import_family_and_friends().await.unwrap();
     Ok(HttpResponse::Ok().json(json!({ "OK": "1" })))
 }
 
@@ -28,16 +29,18 @@ async fn import() -> Result<HttpResponse, ApiError> {
 async fn prisons_get(params: web::Path<String>) -> Result<HttpResponse, ApiError> {
     let prison = Prisons::find(params.into_inner())?;
     let mut visitors = vec![];
+    let mut visits = vec![];
     if prison.first_name != "" {
-        visitors  = Visitors::find_family_and_friend(prison.prison_id.clone())?;
+        visitors = Visitors::find_family_and_friend(prison.prison_id.clone())?;
+        visits = Visits::find_by_prison_id(prison.prison_id.clone())?;
     }
-    Ok(HttpResponse::Ok().json(json!({ "prison": prison,"visitors": visitors })))
+    Ok(HttpResponse::Ok().json(json!({ "prison": prison,"visitors": visitors ,"visits":visits})))
 }
 
 
 #[post("/update-location")]
 async fn prisons_update_location(params: web::Json<PrisonLocationMessage>) -> Result<HttpResponse, ApiError> {
-    let user = PrisonLocation::update( params.into_inner())?;
+    let user = PrisonLocation::update(params.into_inner())?;
     Ok(HttpResponse::Ok().json(user))
 }
 

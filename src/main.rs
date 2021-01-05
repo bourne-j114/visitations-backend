@@ -56,6 +56,7 @@ async fn main() -> std::io::Result<()> {
             .configure(auth::init_routes)
             .configure(users::init_routes)
             .configure(visitors::init_routes)
+            .configure(visits::init_routes)
             .configure(prisons::init_routes)
 
     ).bind(format!("{}:{}", host, port))?
