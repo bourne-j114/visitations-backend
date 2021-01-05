@@ -8,6 +8,8 @@ use crate::schema::{visits};
 use uuid::Uuid;
 use crate::schema::visits::columns::visit_date;
 use std::ops::Add;
+use crate::visitors::Visitors;
+use crate::prisons::Prisons;
 
 #[derive(Serialize, Deserialize, Queryable, Insertable)]
 #[table_name = "visits"]
@@ -44,13 +46,18 @@ impl Visits {
     }
     pub fn is_visited(prison_id: String)-> Result<bool, ApiError>{
         let conn = db::connection()?;
-        let visit:Visits = visits::table
-            .filter(visits::prison_id.eq(prison_id))
-            .order(visit_date.desc())
-            .first(&conn)?;
-        let visited_date= visit.visit_date.format("%Y-%m-%d").to_string();
+        let prison = Prisons::find(prison_id.clone())?;
+        let mut rs = false;
+        if prison.prison_type == 0 {
+            let visit:Visits = visits::table
+                .filter(visits::prison_id.eq(prison_id))
+                .order(visit_date.desc())
+                .first(&conn)?;
 
-        Ok(verify(visited_date))
+            let visited_date= visit.visit_date.format("%Y-%m-%d").to_string();
+            rs = verify(visited_date);
+        }
+        Ok(rs)
     }
 
     pub fn find_by_prison_id(prison_id: String) -> Result<Vec<Self>, ApiError> {
