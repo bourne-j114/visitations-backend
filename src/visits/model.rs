@@ -32,6 +32,7 @@ pub struct Visits {
 pub struct VisitsMessage {
     pub prison_id: String,
     pub visitor_name: String,
+    pub allow: i16
 }
 
 
@@ -119,7 +120,7 @@ impl From<VisitsMessage> for Visits {
             start_time: Local::now().naive_local(),
             stop_time: Local::now().naive_local(),
             round: 0,
-            allow: 1,
+            allow: visits_message.allow,
             remark: "-".to_string(),
             created_at: Local::now().naive_local(),
             updated_at: None,
