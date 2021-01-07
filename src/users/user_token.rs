@@ -24,7 +24,7 @@ impl UserToken {
         let payload = UserToken {
             iat: now,
             exp: now + ONE_WEEK,
-            user: user.email,
+            user: user.userid,
             login_session: user.login_session,
         };
 
@@ -40,6 +40,6 @@ pub struct UserTokenMessage {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct UserMessageInfo {
-    pub email: String,
+    pub userid: String,
     pub password: String,
 }

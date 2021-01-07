@@ -8,10 +8,10 @@ use crate::response::ResponseBody;
 #[post("/signup")]
 pub async fn signup(user: web::Json<UserMessageInfo>) -> Result<HttpResponse> {
     match Users::signup(UsersMessage {
-        email: user.email.clone(),
+        userid: user.userid.clone(),
         password: user.password.clone(),
     }) {
-        Ok(message) => Ok(HttpResponse::Ok().json(ResponseBody::new(message.as_str(), &user.email))),
+        Ok(message) => Ok(HttpResponse::Ok().json(ResponseBody::new(message.as_str(), &user.userid))),
         Err(message) => Ok(HttpResponse::Ok().json(ResponseBody::new(constants::MESSAGE_SIGNUP_FAILED, message)))
     }
 }
@@ -19,7 +19,7 @@ pub async fn signup(user: web::Json<UserMessageInfo>) -> Result<HttpResponse> {
 #[post("/login")]
 pub async fn login(user: web::Json<UserMessageInfo>) -> Result<HttpResponse> {
     match Users::login(UsersMessage {
-        email: user.email.clone(),
+        userid: user.userid.clone(),
         password: user.password.clone(),
     }) {
         Some(logged_user) => {
@@ -43,9 +43,9 @@ pub async fn verify(req: HttpRequest) -> Result<HttpResponse> {
                 let token = authen_str[6..authen_str.len()].trim();
                 // println!("{:?}", token);
                 let token_data = token_utils::decode_token(token.to_string()).unwrap();
-                let email = token_utils::verify_token(&token_data).unwrap();
+                let userid = token_utils::verify_token(&token_data).unwrap();
                 let logged_user = UsersInfo {
-                    email,
+                    userid,
                     login_session: token_data.claims.login_session,
                 };
                 let token_string = UserTokenMessage {
@@ -69,8 +69,8 @@ pub async fn logout(req: HttpRequest) -> Result<HttpResponse> {
             if authen_str.starts_with(constants::BEARER) {
                 let token = authen_str[6..authen_str.len()].trim();
                 if let Ok(token_data) = token_utils::decode_token(token.to_string()) {
-                    if let Ok(email) = token_utils::verify_token(&token_data) {
-                        if let Ok(user) = Users::find_by_email(email) {
+                    if let Ok(userid) = token_utils::verify_token(&token_data) {
+                        if let Ok(user) = Users::find_by_userid(userid) {
                             Users::logout(user.id);
                         }
                     }
