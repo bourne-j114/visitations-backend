@@ -6,6 +6,17 @@ use crate::prisons::{Prisons, PrisonsMessage, PrisonLocation, PrisonLocationMess
 use crate::visitors::Visitors;
 use crate::visits::Visits;
 use std::error::Error;
+use actix_multipart::Multipart;
+use std::borrow::BorrowMut;
+use crate::utils::upload::{save_file as upload_save_file, split_payload, UploadFile};
+use serde::{Deserialize, Serialize};
+
+#[derive(Deserialize, Serialize, Debug)]
+pub struct InpAdd {
+    pub text: String,
+    pub number: i32,
+}
+
 
 #[get("/list")]
 async fn prisons_list_all() -> Result<HttpResponse, ApiError> {
@@ -17,6 +28,21 @@ async fn prisons_list_all() -> Result<HttpResponse, ApiError> {
 async fn prisons_create(user: web::Json<PrisonsMessage>) -> Result<HttpResponse, ApiError> {
     let user = Prisons::create(user.into_inner())?;
     Ok(HttpResponse::Ok().json(user))
+}
+
+async fn save_file(mut payload: Multipart) -> Result<HttpResponse, ApiError> {
+    let pl = split_payload(payload.borrow_mut()).await;
+    println!("bytes={:#?}", pl.0);
+    let inp_info: InpAdd = serde_json::from_slice(&pl.0).unwrap();
+    println!("converter_struct={:#?}", inp_info);
+    println!("tmpfiles={:#?}", pl.1);
+    //make key
+    let s3_upload_key = format!("projects/{}/", "posts_id");
+    //create tmp file and upload s3 and remove tmp file
+    let upload_files: Vec<UploadFile> =
+        upload_save_file(pl.1, s3_upload_key).await.unwrap();
+    println!("upload_files={:#?}", upload_files);
+    Ok(HttpResponse::Ok().into())
 }
 
 #[get("/import")]
