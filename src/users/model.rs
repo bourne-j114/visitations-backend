@@ -11,14 +11,14 @@ use crate::users::UserToken;
 #[derive(Serialize, Deserialize, AsChangeset)]
 #[table_name = "users"]
 pub struct UsersMessage {
-    pub email: String,
+    pub userid: String,
     pub password: String,
 }
 
 #[derive(Serialize, Deserialize, AsChangeset)]
 #[table_name = "users"]
 pub struct UsersInfo {
-    pub email: String,
+    pub userid: String,
     pub login_session: String,
 }
 
@@ -26,7 +26,7 @@ pub struct UsersInfo {
 #[table_name = "users"]
 pub struct Users {
     pub id: Uuid,
-    pub email: String,
+    pub userid: String,
     pub password: String,
     pub login_session: String,
     #[serde(skip_serializing)]
@@ -37,7 +37,7 @@ pub struct Users {
 impl Users {
     pub fn signup(user: UsersMessage) -> Result<String, String> {
 
-        if Self::find_by_email(user.email.clone()).is_err() {
+        if Self::find_by_userid(user.userid.clone()).is_err() {
             let hashed_pwd = hash(&user.password.clone(), DEFAULT_COST).unwrap();
             let mut insert_user = Users::from(user);
             insert_user.password = hashed_pwd;
@@ -49,7 +49,7 @@ impl Users {
 
             Ok(constants::MESSAGE_SIGNUP_SUCCESS.to_string())
         } else {
-            Err(format!("User '{}' is already registered", &user.email))
+            Err(format!("User '{}' is already registered", &user.userid))
         }
     }
 
@@ -72,11 +72,11 @@ impl Users {
         Ok(user)
     }
 
-    pub fn find_by_email(email: String) -> Result<Self, ApiError> {
+    pub fn find_by_userid(userid: String) -> Result<Self, ApiError> {
         let conn = db::connection()?;
 
         let user = users::table
-            .filter(users::email.eq(email))
+            .filter(users::userid.eq(userid))
             .first(&conn)?;
 
         Ok(user)
@@ -141,7 +141,7 @@ impl Users {
         let conn = db::connection().unwrap();
 
         let user_to_verify = users::table
-            .filter(users::email.eq(&user.email))
+            .filter(users::userid.eq(&user.userid))
             .get_result::<Users>(&conn);
 
         match user_to_verify {
@@ -150,9 +150,9 @@ impl Users {
                     && verify(&user.password, &user_found.password).unwrap()
                 {
                     let login_session_str = Users::generate_login_session();
-                    if Users::update_login_session(&user_found.email, &login_session_str) {
+                    if Users::update_login_session(&user_found.userid, &login_session_str) {
                         return Some(UsersInfo {
-                            email: user_found.email,
+                            userid: user_found.userid,
                             login_session: login_session_str,
                         });
                     }
@@ -164,9 +164,9 @@ impl Users {
         None
     }
 
-    pub fn update_login_session(email: &str, login_session_str: &str) -> bool {
+    pub fn update_login_session(userid: &str, login_session_str: &str) -> bool {
         let conn = db::connection().unwrap();
-        if let Ok(user) = Users::find_by_email(email.to_string()) {
+        if let Ok(user) = Users::find_by_userid(userid.to_string()) {
             diesel::update(users::table)
                 .filter(users::id.eq(user.id))
                 .set(users::login_session.eq(login_session_str.to_string()))
@@ -182,14 +182,14 @@ impl Users {
         if let Ok(user) = users::table
             .filter(users::id.eq(user_id))
             .get_result::<Users>(&conn) {
-                Self::update_login_session(&user.email, "");
+                Self::update_login_session(&user.userid, "");
             }
     }
 
     pub fn is_valid_login_session(user_token: &UserToken) -> bool {
         let conn = db::connection().unwrap();
         users::table
-            .filter(users::email.eq(&user_token.user))
+            .filter(users::userid.eq(&user_token.user))
             .filter(users::login_session.eq(&user_token.login_session))
             .get_result::<Users>(&conn)
             .is_ok()
@@ -200,7 +200,7 @@ impl From<UsersMessage> for Users {
     fn from(users_message: UsersMessage) -> Self {
         Users {
             id: Uuid::new_v4(),
-            email: users_message.email,
+            userid: users_message.userid,
             password: users_message.password,
             login_session: "".to_string(),
             created_at: Local::now().naive_local(),

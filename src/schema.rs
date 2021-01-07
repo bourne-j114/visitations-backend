@@ -19,7 +19,7 @@ table! {
 table! {
     users (id) {
         id -> Uuid,
-        email -> Text,
+        userid -> Text,
         password -> Text,
         login_session -> Varchar,
         created_at -> Timestamp,
