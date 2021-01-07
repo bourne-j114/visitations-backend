@@ -30,7 +30,8 @@ async fn prisons_create(user: web::Json<PrisonsMessage>) -> Result<HttpResponse,
     Ok(HttpResponse::Ok().json(user))
 }
 
-async fn save_file(mut payload: Multipart) -> Result<HttpResponse, ApiError> {
+#[post("/register")]
+async fn register(mut payload: Multipart) -> Result<HttpResponse, ApiError> {
     let pl = split_payload(payload.borrow_mut()).await;
     println!("bytes={:#?}", pl.0);
     let inp_info: InpAdd = serde_json::from_slice(&pl.0).unwrap();
@@ -85,5 +86,6 @@ pub fn init_routes(cfg: &mut web::ServiceConfig) {
             .service(prisons_update_location)
             .service(prisons_delete)
             .service(import)
+            .service(register)
     );
 }
