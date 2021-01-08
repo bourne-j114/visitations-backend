@@ -78,24 +78,50 @@ pub(crate) async fn import_family_and_friends() -> Result<(), Box<dyn Error>> {
                 prison.jail_date = jail_date;
                 delay_for(Duration::from_millis(2000)).await;
                 //insert prison
-                let mut prison_msg = PrisonsMessage::default();
-                prison_msg.prison_id = prison.prison_id.clone();
-                prison_msg.first_name = prison.first_name.clone();
-                prison_msg.last_name = prison.last_name.clone();
-                prison_msg.case_detail = prison.case.clone();
-                let mut tmp = "f";
-                if prison.gender.clone().as_str() == "ชาย" {
-                    tmp = "m";
-                }
-                prison_msg.gender = tmp.to_string();
-                prison_msg.jail_date = prison.jail_date.clone();
-                prison_msg.location = "-".to_string();
-                prison_msg.punish = "-".to_string();
-                prison_msg.remark = "-".to_string();
-                prison_msg.id_card = "-".to_string();
-                 dbg!(&prison_msg);
-                Prisons::create(prison_msg).unwrap();
-                prison.visitors = get_family_and_friends(&client, &cookie, record.get(1).unwrap().to_string()).await?;
+              /*
+                let  prison_msg = PrisonsMessage {
+                    prison_id: "".to_string(),
+                    gender,
+                    first_name,
+                    last_name,
+                    nick_name: "".to_string(),
+                    birth_day: (),
+                    picture_paht: "".to_string(),
+                    location: "".to_string(),
+                    prison_type: 0,
+                    remark: "".to_string(),
+                    id_card: "".to_string(),
+                    address_no: "".to_string(),
+                    moo: "".to_string(),
+                    subdistric: "".to_string(),
+                    distric: "".to_string(),
+                    province: "".to_string(),
+                    race: "".to_string(),
+                    nationality: "".to_string(),
+                    religion: "".to_string(),
+                    blame: "".to_string(),
+                    education: "".to_string(),
+                    edu_institution: "".to_string(),
+                    edu_address1: "".to_string(),
+                    status: "".to_string(),
+                    child: 0,
+                    sibling: "".to_string(),
+                    child_in_a_child: 0,
+                    home_owner: "".to_string(),
+                    stay_address_no: "".to_string(),
+                    stay_moo: "".to_string(),
+                    stay_subdistric: "".to_string(),
+                    stay_distric: "".to_string(),
+                    stay_province: "".to_string(),
+                    occupation: "".to_string(),
+                    income: "".to_string(),
+                    history_punish: "".to_string(),
+                    history_punish_year: 0,
+                    history_punish_month: 0,
+                    history_punish_day: 0,
+                    prove_pass_num: 0,
+                    cur_num: 0
+                };*/
             }
         }
 

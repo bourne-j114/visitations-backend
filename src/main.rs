@@ -22,6 +22,7 @@ mod utils;
 mod users;
 mod prisons;
 mod visits;
+mod cases;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {

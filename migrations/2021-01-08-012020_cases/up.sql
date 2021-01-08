@@ -1,7 +1,7 @@
 -- Your SQL goes here
 create table if not exists cases
 (
-    id  serial       not null primary key,
+    id  UUID  not null primary key,
     prison_id VARCHAR(11) NOT NULL,
     court_order VARCHAR(100) NOT NULL,
     case_no VARCHAR(20) NOT NULL,
@@ -9,7 +9,7 @@ create table if not exists cases
     police_station VARCHAR(100) NOT NULL,
     catch_date timestamp    not null,
     receive_date timestamp    not null,
-    jail_date   VARCHAR(10) NOT NULL,
+    jail_date   timestamp    not null,
     jail_status   smallint NOT NULL DEFAULT 0,
     scheduled_release15 timestamp,
     scheduled_release45 timestamp,

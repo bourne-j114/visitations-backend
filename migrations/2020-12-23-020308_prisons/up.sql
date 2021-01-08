@@ -17,7 +17,6 @@ create table if not exists prisons
     subdistric VARCHAR(50) NOT NULL,
     distric VARCHAR(50) NOT NULL,
     province  VARCHAR(70) NOT NULL,
-    nation VARCHAR(100) NOT NULL,
     race  VARCHAR(50) NOT NULL,
     nationality VARCHAR(50) NOT NULL,
     religion  VARCHAR(50) NOT NULL,
