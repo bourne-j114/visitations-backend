@@ -10,21 +10,9 @@ create table if not exists prisons
     picture_paht VARCHAR(100) NOT NULL,
     location VARCHAR(50) NOT NULL,
     prison_type smallint NOT NULL DEFAULT 0,
-    case_detail VARCHAR(500) NOT NULL,
-    punish VARCHAR(200) NOT NULL,
     remark   VARCHAR(200) NOT NULL,
     id_card   VARCHAR(20) NOT NULL,
-    jail_date   VARCHAR(10) NOT NULL,
-    jail_status   smallint NOT NULL DEFAULT 0,
-    catch_date timestamp    not null,
-    receive_date timestamp    not null,
     address_no VARCHAR(20) NOT NULL,
-    court_order VARCHAR(100) NOT NULL,
-    case_no VARCHAR(20) NOT NULL,
-    police_station VARCHAR(100) NOT NULL,
-    scheduled_release15 timestamp,
-    scheduled_release45 timestamp,
-    cause_release VARCHAR(100) NOT NULL,
     moo VARCHAR(20) NOT NULL,
     subdistric VARCHAR(50) NOT NULL,
     distric VARCHAR(50) NOT NULL,
@@ -53,12 +41,10 @@ create table if not exists prisons
     history_punish_year smallint NOT NULL DEFAULT 0,
     history_punish_month smallint NOT NULL DEFAULT 0,
     history_punish_day smallint NOT NULL DEFAULT 0,
-    be_punished VARCHAR(100) NOT NULL,
     prove_pass_num smallint NOT NULL DEFAULT 0,
     cur_num smallint NOT NULL DEFAULT 0,
     created_at   timestamp    not null,
     updated_at   timestamp
     );
 create index prisons_by_first_name_last_name on prisons(first_name, last_name);
-create index prisons_by_receive_date on prisons(receive_date);
 
