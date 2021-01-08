@@ -177,6 +177,7 @@ impl Prisons {
                 Self::update(r.prison_id,prisons_message)?;
             }
             Err(_) => {
+                println!("Insert");
                 let prisons_message = Prisons::from(prisons_message);
                  diesel::insert_into(prisons::table)
                     .values(&prisons_message)
