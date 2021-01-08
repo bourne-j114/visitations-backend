@@ -24,22 +24,22 @@ async fn prisons_list_all() -> Result<HttpResponse, ApiError> {
     let prisons = Prisons::find_all()?;
     Ok(HttpResponse::Ok().json(prisons))
 }
-
+/*
 #[post("/create")]
 async fn prisons_create(user: web::Json<PrisonsMessage>) -> Result<HttpResponse, ApiError> {
     let user = Prisons::create(user.into_inner())?;
     Ok(HttpResponse::Ok().json(user))
 }
-
+*/
 #[post("/register/{id}")]
-async fn register(params: web::Path<String>,mut payload: Multipart) -> Result<HttpResponse, ApiError> {
+async fn register(params: web::Path<String>, mut payload: Multipart) -> Result<HttpResponse, ApiError> {
     let prison_id = params.into_inner();
-    let pl = split_payload(payload.borrow_mut(),prison_id).await;
+    let pl = split_payload(payload.borrow_mut(), prison_id.clone()).await;
     println!("bytes={:#?}", pl.0);
     let prison_info: PrisonInfo = serde_json::from_slice(&pl.0).unwrap();
     println!("converter_struct={:#?}", prison_info);
-
-    Ok(HttpResponse::Ok().into())
+    let prison = Prisons::create(prison_info.profile, prison_id)?;
+    Ok(HttpResponse::Ok().json(prison))
 }
 
 #[get("/import")]
@@ -78,7 +78,7 @@ pub fn init_routes(cfg: &mut web::ServiceConfig) {
         web::scope("/api/prisons")
             .service(prisons_list_all)
             .service(prisons_get)
-            .service(prisons_create)
+         //   .service(prisons_create)
             .service(prisons_update_location)
             .service(prisons_delete)
             .service(import)

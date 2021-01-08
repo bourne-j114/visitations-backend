@@ -169,14 +169,22 @@ impl Prisons {
         Ok(prison)
     }
 
-    pub fn create(prisons_message: PrisonsMessage) -> Result<Self, ApiError> {
+    pub fn create(prisons_message: PrisonsMessage,prison_id: String) -> Result<bool, ApiError> {
         let conn = db::connection().unwrap();
-        let prisons_message = Prisons::from(prisons_message);
-        let new_prison = diesel::insert_into(prisons::table)
-            .values(&prisons_message)
-            .get_result(&conn)?;
-
-        Ok(new_prison)
+        let mut rs = false;
+        match Self::find(prison_id){
+            Ok(r) => {
+                Self::update(r.prison_id,prisons_message)?;
+            }
+            Err(_) => {
+                let prisons_message = Prisons::from(prisons_message);
+                 diesel::insert_into(prisons::table)
+                    .values(&prisons_message)
+                    .execute(&conn)?;
+                rs = true;
+            }
+        }
+        Ok(rs)
     }
 
     pub fn update(id: String, prison_message: PrisonsMessage) -> Result<Self, ApiError> {
