@@ -10,11 +10,12 @@ use actix_multipart::Multipart;
 use std::borrow::BorrowMut;
 use crate::utils::upload::{save_file as upload_save_file, split_payload, UploadFile};
 use serde::{Deserialize, Serialize};
+use crate::cases::CasesMessage;
 
 #[derive(Deserialize, Serialize, Debug)]
-pub struct InpAdd {
-    pub text: String,
-    pub number: i32,
+pub struct PrisonInfo {
+    pub profile: PrisonsMessage,
+    pub case_datail: CasesMessage,
 }
 
 
@@ -34,7 +35,7 @@ async fn prisons_create(user: web::Json<PrisonsMessage>) -> Result<HttpResponse,
 async fn register(mut payload: Multipart) -> Result<HttpResponse, ApiError> {
     let pl = split_payload(payload.borrow_mut()).await;
     println!("bytes={:#?}", pl.0);
-    let inp_info: InpAdd = serde_json::from_slice(&pl.0).unwrap();
+    let inp_info: PrisonInfo = serde_json::from_slice(&pl.0).unwrap();
     println!("converter_struct={:#?}", inp_info);
     println!("tmpfiles={:#?}", pl.1);
     //make key

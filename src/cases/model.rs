@@ -1,4 +1,4 @@
-use chrono::{NaiveDateTime, Local, Datelike, Duration};
+use chrono::{NaiveDateTime, Local, Datelike, Duration, NaiveDate};
 use diesel::prelude::*;
 use serde::{Deserialize, Serialize};
 
@@ -21,31 +21,42 @@ pub struct Cases {
     pub case_no: String,
     pub case_detail: String,
     pub police_station: String,
-    pub catch_date: NaiveDateTime,
-    pub receive_date: NaiveDateTime,
-    pub jail_date: NaiveDateTime,
+    pub catch_date: NaiveDate,
+    pub receive_date: NaiveDate,
+    pub jail_date: NaiveDate,
     pub jail_status: i16,
-    pub scheduled_release15: Option<NaiveDateTime>,
-    pub scheduled_release45: Option<NaiveDateTime>,
+    pub scheduled_release15: Option<NaiveDate>,
+    pub scheduled_release45: Option<NaiveDate>,
     pub cause_release: String,
     pub created_at: NaiveDateTime,
     pub updated_at: Option<NaiveDateTime>,
 }
 
-#[derive(Serialize, Deserialize, AsChangeset)]
-#[table_name = "cases"]
+#[derive(Debug,Serialize, Deserialize)]
 pub struct CasesMessage {
     pub prison_id: String,
     pub court_order: String,
     pub case_no: String,
     pub case_detail: String,
     pub police_station: String,
-    pub catch_date: NaiveDateTime,
-    pub receive_date: NaiveDateTime,
-    pub jail_date: NaiveDateTime,
+    pub catch_date: String,
+    pub receive_date: String,
+}
+
+#[derive(Debug,Serialize, Deserialize,AsChangeset)]
+#[table_name = "cases"]
+pub struct CasesUpdate {
+    pub prison_id: String,
+    pub court_order: String,
+    pub case_no: String,
+    pub case_detail: String,
+    pub police_station: String,
+    pub catch_date: NaiveDate,
+    pub receive_date: NaiveDate,
+    pub jail_date: NaiveDate,
     pub jail_status: i16,
-    pub scheduled_release15: Option<NaiveDateTime>,
-    pub scheduled_release45: Option<NaiveDateTime>,
+    pub scheduled_release15: Option<NaiveDate>,
+    pub scheduled_release45: Option<NaiveDate>,
     pub cause_release: String,
 }
 
@@ -82,7 +93,7 @@ impl Cases {
         Ok(new_case)
     }
 
-    pub fn update(id: Uuid, cases_message: CasesMessage) -> Result<Self, ApiError> {
+    pub fn update(id: Uuid, cases_message: CasesUpdate) -> Result<Self, ApiError> {
         let conn = db::connection()?;
 
         let update_case = diesel::update(cases::table)
@@ -114,9 +125,9 @@ impl From<CasesMessage> for Cases {
             case_no: cases_message.case_no,
             case_detail: cases_message.case_detail,
             police_station: cases_message.police_station,
-            catch_date: cases_message.catch_date,
-            receive_date: cases_message.receive_date,
-            jail_date: Local::now().naive_local(),
+            catch_date: NaiveDate::parse_from_str(cases_message.catch_date.as_str(),"%Y-%m-%d").unwrap(),
+            receive_date: NaiveDate::parse_from_str(cases_message.receive_date.as_str(),"%Y-%m-%d").unwrap(),
+            jail_date: Local::now().naive_local().date(),
             jail_status: 1,
             scheduled_release15: None,
             scheduled_release45: None,
