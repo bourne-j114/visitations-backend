@@ -63,10 +63,9 @@ impl Tmpfile {
     }
 }
 
-pub async fn split_payload(payload: &mut Multipart) -> (bytes::Bytes, Vec<Tmpfile>) {
-    let mut tmp_files: Vec<Tmpfile> = Vec::new();
+pub async fn split_payload(payload: &mut Multipart,prison_id: String) -> (bytes::Bytes, String) {
     let mut data = Bytes::new();
-
+    let mut filepath = "".to_string();
     while let Some(item) = payload.next().await {
         let mut field: Field = item.expect(" split_payload err");
         let content_type = field.content_disposition().unwrap();
@@ -77,10 +76,10 @@ pub async fn split_payload(payload: &mut Multipart) -> (bytes::Bytes, Vec<Tmpfil
             }
         } else {
             match content_type.get_filename() {
-                Some(filename) => {
-                    let tmp_file = Tmpfile::new(&sanitize_filename::sanitize(&filename));
-                    let tmp_path = tmp_file.tmp_path.clone();
-                    let mut f = web::block(move || std::fs::File::create(&tmp_path))
+                Some(_filename) => {
+                    let filename = format!("{}.jpg",prison_id);
+                    let filepath = format!("./tmp/{}", sanitize_filename::sanitize(&filename));
+                    let mut f = web::block(move || std::fs::File::create(&filepath))
                         .await
                         .unwrap();
                     while let Some(chunk) = field.next().await {
@@ -89,7 +88,6 @@ pub async fn split_payload(payload: &mut Multipart) -> (bytes::Bytes, Vec<Tmpfil
                             .await
                             .unwrap();
                     }
-                    tmp_files.push(tmp_file.clone());
                 }
                 None => {
                     println!("file none");
@@ -97,7 +95,7 @@ pub async fn split_payload(payload: &mut Multipart) -> (bytes::Bytes, Vec<Tmpfil
             }
         }
     }
-    (data, tmp_files)
+    (data,filepath)
 }
 
 pub async fn save_file(

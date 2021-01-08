@@ -31,19 +31,14 @@ async fn prisons_create(user: web::Json<PrisonsMessage>) -> Result<HttpResponse,
     Ok(HttpResponse::Ok().json(user))
 }
 
-#[post("/register")]
-async fn register(mut payload: Multipart) -> Result<HttpResponse, ApiError> {
-    let pl = split_payload(payload.borrow_mut()).await;
+#[post("/register/{id}")]
+async fn register(params: web::Path<String>,mut payload: Multipart) -> Result<HttpResponse, ApiError> {
+    let prison_id = params.into_inner();
+    let pl = split_payload(payload.borrow_mut(),prison_id).await;
     println!("bytes={:#?}", pl.0);
-    let inp_info: PrisonInfo = serde_json::from_slice(&pl.0).unwrap();
-    println!("converter_struct={:#?}", inp_info);
-    println!("tmpfiles={:#?}", pl.1);
-    //make key
-    let s3_upload_key = format!("projects/{}/", "posts_id");
-    //create tmp file and upload s3 and remove tmp file
-    let upload_files: Vec<UploadFile> =
-        upload_save_file(pl.1, s3_upload_key).await.unwrap();
-    println!("upload_files={:#?}", upload_files);
+    let prison_info: PrisonInfo = serde_json::from_slice(&pl.0).unwrap();
+    println!("converter_struct={:#?}", prison_info);
+
     Ok(HttpResponse::Ok().into())
 }
 
