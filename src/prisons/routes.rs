@@ -64,7 +64,8 @@ async fn prisons_get(params: web::Path<String>) -> Result<HttpResponse, ApiError
 #[get("/getinfo/{id}")]
 async fn getinfo(params: web::Path<String>) -> Result<HttpResponse, ApiError> {
     let prison = Prisons::find(params.into_inner())?;
-    Ok(HttpResponse::Ok().json( prison))
+    let case_detail = Cases::find(prison.prison_id.clone())?;
+    Ok(HttpResponse::Ok().json(json!({ "prison": prison, "case_detail": case_detail})))
 }
 
 

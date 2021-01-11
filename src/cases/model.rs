@@ -71,6 +71,16 @@ impl Cases {
         Ok(cases_list)
     }
 
+    pub fn find(prison_id: String) -> Result<Self, ApiError> {
+        let conn = db::connection()?;
+
+        let case = cases::table
+            .filter(cases::prison_id.eq(prison_id))
+            .order(receive_date.desc())
+            .first(&conn)?;
+        Ok(case)
+    }
+
     pub fn find_by_prison_id(prison_id: String) -> Result<Vec<Self>, ApiError> {
         let conn = db::connection()?;
 
