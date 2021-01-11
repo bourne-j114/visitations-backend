@@ -16,6 +16,7 @@ use reqwest::Client;
 use crate::prisons::{Prisons, PrisonsMessage};
 use crate::visitors::{Visitors, VisitorsMessage};
 use crate::api_error::ApiError;
+use chrono::Local;
 
 #[derive(Serialize, Deserialize, Default)]
 struct Prison {
@@ -50,15 +51,15 @@ pub(crate) async fn import_family_and_friends() -> Result<(), Box<dyn Error>> {
 
     for result in rdr.records() {
         let record = result?;
-        let mut prison = Prison::default();
 
-        prison.prison_id = record.get(1).unwrap().to_string();
-        match Prisons::find(prison.prison_id.clone()){
+        let prison_id = record.get(1).unwrap().to_string();
+        match Prisons::find(prison_id.clone()){
             Ok(prison) => {
-                println!("Prison id : {} exits", prison.prison_id);
+                println!("Prison id : {} exits", prison_id);
             }
             Err(_) => {
-                println!("Import prison id : {}", record.get(1).unwrap());
+
+                println!("Import prison id : {}", &prison_id);
                 let temp = record.get(3).unwrap().to_string();
                 let split = temp.split(" ");
                 let vec = split.collect::<Vec<&str>>();
@@ -66,62 +67,54 @@ pub(crate) async fn import_family_and_friends() -> Result<(), Box<dyn Error>> {
                 let first_name = vec[0].to_string();
                 let last_name = vec[1].to_string();
 
-                let gender = record.get(5).unwrap().to_string();
+                let mut gender = record.get(5).unwrap().to_string();
+                 if gender == "ชาย" {
+                     gender = "m".to_string();
+                 }else{
+                     gender = "f".to_string();
+                 }
                 let nation = record.get(7).unwrap().to_string();
-                let case = record.get(11).unwrap().to_string();
-                let jail_date = record.get(12).unwrap().to_string();
-                prison.first_name = first_name;
-                prison.last_name = last_name;
-                prison.case = case;
-                prison.gender = gender;
-                prison.nation = nation;
-                prison.jail_date = jail_date;
-                delay_for(Duration::from_millis(2000)).await;
-                //insert prison
-              /*
-                let  prison_msg = PrisonsMessage {
-                    prison_id: "".to_string(),
+
+                let  prisons_msg = PrisonsMessage {
+                    prison_id: prison_id.clone() ,
                     gender,
                     first_name,
                     last_name,
-                    nick_name: "".to_string(),
-                    birth_day: (),
-                    picture_paht: "".to_string(),
-                    location: "".to_string(),
+                    nick_name: "-".to_string(),
+                    birth_day: "-".to_string(),
                     prison_type: 0,
-                    remark: "".to_string(),
-                    id_card: "".to_string(),
-                    address_no: "".to_string(),
-                    moo: "".to_string(),
-                    subdistric: "".to_string(),
-                    distric: "".to_string(),
-                    province: "".to_string(),
-                    race: "".to_string(),
-                    nationality: "".to_string(),
-                    religion: "".to_string(),
-                    blame: "".to_string(),
-                    education: "".to_string(),
-                    edu_institution: "".to_string(),
-                    edu_address1: "".to_string(),
-                    status: "".to_string(),
+                    id_card: "-".to_string(),
+                    address_no: "-".to_string(),
+                    moo: "-".to_string(),
+                    subdistric: "-".to_string(),
+                    distric: "-".to_string(),
+                    province: "-".to_string(),
+                    race: "-".to_string(),
+                    nationality: nation,
+                    religion: "-".to_string(),
+                    blame: "-".to_string(),
+                    education: "-".to_string(),
+                    edu_institution: "-".to_string(),
+                    status: "-".to_string(),
                     child: 0,
-                    sibling: "".to_string(),
+                    sibling: 0,
                     child_in_a_child: 0,
-                    home_owner: "".to_string(),
-                    stay_address_no: "".to_string(),
-                    stay_moo: "".to_string(),
-                    stay_subdistric: "".to_string(),
-                    stay_distric: "".to_string(),
-                    stay_province: "".to_string(),
-                    occupation: "".to_string(),
-                    income: "".to_string(),
+                    home_owner: "-".to_string(),
+                    stay_address_no: "-".to_string(),
+                    stay_moo: "-".to_string(),
+                    stay_subdistric: "-".to_string(),
+                    stay_distric: "-".to_string(),
+                    stay_province: "-".to_string(),
+                    occupation: "-".to_string(),
+                    income: "0".to_string(),
                     history_punish: "".to_string(),
                     history_punish_year: 0,
                     history_punish_month: 0,
                     history_punish_day: 0,
                     prove_pass_num: 0,
                     cur_num: 0
-                };*/
+                };
+                Prisons::create(prisons_msg,prison_id);
             }
         }
 

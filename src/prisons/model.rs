@@ -11,7 +11,7 @@ use diesel::dsl::sql;
 use diesel::sql_types::Bool;
 use diesel::sql_query;
 
-#[derive(PartialEq,QueryableByName, Debug, Serialize, Deserialize, Queryable, Insertable)]
+#[derive(PartialEq, QueryableByName, Debug, Serialize, Deserialize, Queryable, Insertable)]
 #[table_name = "prisons"]
 pub struct Prisons {
     pub prison_id: String,
@@ -121,18 +121,16 @@ pub struct PrisonsSlim {
 }
 
 
-
 impl Prisons {
-
     pub fn find_all() -> Result<Vec<PrisonsSlim>, ApiError> {
         let conn = db::connection()?;
         let prison_list: Vec<Prisons> = sql_query("SELECT * FROM prisons ORDER BY prison_id")
             .load(&conn)?;
         let mut prison_vec = vec![];
-        for v in prison_list{
-            let tmp = PrisonsSlim{
+        for v in prison_list {
+            let tmp = PrisonsSlim {
                 prison_id: v.prison_id,
-                full_name: format!("{} {}",v.first_name,v.last_name),
+                full_name: format!("{} {}", v.first_name, v.last_name),
             };
             prison_vec.push(tmp);
         }
@@ -169,17 +167,17 @@ impl Prisons {
         Ok(prison)
     }
 
-    pub fn create(prisons_message: PrisonsMessage,prison_id: String) -> Result<bool, ApiError> {
+    pub fn create(prisons_message: PrisonsMessage, prison_id: String) -> Result<bool, ApiError> {
         let conn = db::connection().unwrap();
         let mut rs = false;
-        match Self::find(prison_id){
+        match Self::find(prison_id) {
             Ok(r) => {
-                Self::update(r.prison_id,prisons_message)?;
+                Self::update(r.prison_id, prisons_message)?;
             }
             Err(_) => {
                 println!("Insert");
                 let prisons_message = Prisons::from(prisons_message);
-                 diesel::insert_into(prisons::table)
+                diesel::insert_into(prisons::table)
                     .values(&prisons_message)
                     .execute(&conn)?;
                 rs = true;
@@ -233,10 +231,11 @@ impl PrisonsMessage {
         let new_prison = diesel::insert_into(prisons::table)
             .values(&prison_message)
             .get_result(&conn)?;
-        
+
         Ok(new_prison)
     }
 }
+
 impl From<PrisonLocationMessage> for PrisonLocation {
     fn from(prison_location_message: PrisonLocationMessage) -> Self {
         PrisonLocation {

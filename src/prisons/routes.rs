@@ -15,7 +15,7 @@ use crate::cases::{CasesMessage, Cases};
 #[derive(Deserialize, Serialize, Debug)]
 pub struct PrisonInfo {
     pub profile: PrisonsMessage,
-    pub case_datail: CasesMessage,
+    pub case_detail: CasesMessage,
 }
 
 
@@ -39,7 +39,7 @@ async fn register(params: web::Path<String>, mut payload: Multipart) -> Result<H
     let prison_info: PrisonInfo = serde_json::from_slice(&pl.0).unwrap();
     println!("converter_struct={:#?}", prison_info);
     let prison = Prisons::create(prison_info.profile, prison_id)?;
-    let cases = Cases::insert(prison_info.case_datail)?;
+    let cases = Cases::insert(prison_info.case_detail)?;
     Ok(HttpResponse::Ok().json(prison))
 }
 
@@ -61,6 +61,12 @@ async fn prisons_get(params: web::Path<String>) -> Result<HttpResponse, ApiError
     Ok(HttpResponse::Ok().json(json!({ "prison": prison,"visitors": visitors ,"visits":visits})))
 }
 
+#[get("/getinfo/{id}")]
+async fn getinfo(params: web::Path<String>) -> Result<HttpResponse, ApiError> {
+    let prison = Prisons::find(params.into_inner())?;
+    Ok(HttpResponse::Ok().json( prison))
+}
+
 
 #[post("/update-location")]
 async fn prisons_update_location(params: web::Json<PrisonLocationMessage>) -> Result<HttpResponse, ApiError> {
@@ -79,7 +85,7 @@ pub fn init_routes(cfg: &mut web::ServiceConfig) {
         web::scope("/api/prisons")
             .service(prisons_list_all)
             .service(prisons_get)
-         //   .service(prisons_create)
+            .service(getinfo)
             .service(prisons_update_location)
             .service(prisons_delete)
             .service(import)
