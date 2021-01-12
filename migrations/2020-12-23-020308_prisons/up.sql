@@ -41,6 +41,7 @@ create table if not exists prisons
     history_punish_day smallint NOT NULL DEFAULT 0,
     prove_pass_num smallint NOT NULL DEFAULT 0,
     cur_num smallint NOT NULL DEFAULT 0,
+    absent smallint NOT NULL DEFAULT 1,
     created_at   timestamp    not null,
     updated_at   timestamp
     );

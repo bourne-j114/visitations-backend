@@ -2,7 +2,7 @@ use crate::api_error::ApiError;
 
 use actix_web::{delete, get, post, put, web, HttpResponse};
 use serde_json::json;
-use crate::prisons::{Prisons, PrisonsMessage, PrisonLocation, PrisonLocationMessage, import_family_and_friends};
+use crate::prisons::{Prisons, PrisonsMessage, PrisonLocation, PrisonLocationMessage, import_family_and_friends, SearchQuery};
 use crate::visitors::Visitors;
 use crate::visits::Visits;
 use std::error::Error;
@@ -11,6 +11,7 @@ use std::borrow::BorrowMut;
 use crate::utils::upload::{save_file as upload_save_file, split_payload, UploadFile};
 use serde::{Deserialize, Serialize};
 use crate::cases::{CasesMessage, Cases};
+use chrono::NaiveDate;
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct PrisonInfo {
@@ -68,6 +69,13 @@ async fn getinfo(params: web::Path<String>) -> Result<HttpResponse, ApiError> {
     Ok(HttpResponse::Ok().json(json!({ "prison": prison, "case_detail": case_detail})))
 }
 
+#[post("/query")]
+async fn query(params: web::Json<SearchQuery>) -> Result<HttpResponse, ApiError> {
+    let prisons = Prisons::find_by_filter(params.into_inner())?;
+    Ok(HttpResponse::Ok().json(json!({ "prisons": prisons})))
+}
+
+
 
 #[post("/update-location")]
 async fn prisons_update_location(params: web::Json<PrisonLocationMessage>) -> Result<HttpResponse, ApiError> {
@@ -91,5 +99,6 @@ pub fn init_routes(cfg: &mut web::ServiceConfig) {
             .service(prisons_delete)
             .service(import)
             .service(register)
+            .service(query)
     );
 }

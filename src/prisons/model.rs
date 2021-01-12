@@ -1,4 +1,4 @@
-use chrono::{NaiveDateTime, Local};
+use chrono::{NaiveDateTime, Local, NaiveDate};
 use diesel::prelude::*;
 use serde::{Deserialize, Serialize};
 
@@ -120,10 +120,49 @@ pub struct PrisonsSlim {
     pub full_name: String,
 }
 
+#[derive(Deserialize, Serialize, Debug)]
+pub struct SearchQuery {
+    pub prison_type: i16,
+    pub gender: String,
+    pub absent: i16,
+    pub start_receive_date: String,
+    pub end_receive_date: String,
+    pub start_release_date: String,
+    pub end_release_date: String,
+}
+
 
 impl Prisons {
+    pub fn find_by_filter(params: SearchQuery) -> Result<Vec<PrisonsSlim>, ApiError> {
+        let conn = db::connection()?;
+        let mut query = "".to_string();
+        if params.start_receive_date != "0000-00-00".to_string() {
+            query = format!(" AND cases.receive_date BETWEEN  '{}' AND '{}' ",
+                            params.start_receive_date, params.end_receive_date);
+        }
+        if params.start_release_date != "0000-00-00".to_string() {
+            query = format!("{} AND cases.scheduled_release45 BETWEEN  '{}' AND  '{}' ",
+                            query, params.start_release_date, params.end_release_date);
+        }
+        let sql =  format!("SELECT * FROM prisons INNER JOIN cases ON cases.prison_id = prisons.prison_id  WHERE prison_type = {} \
+                                AND gender = '{}' AND absent = {} {}",
+                           params.prison_type,params.gender,params.absent, query);
+       // println!("{}" ,&sql);
+        let prison_list: Vec<Prisons> = sql_query(sql)
+            .load(&conn)?;
+        let mut prison_vec = vec![];
+        for v in prison_list {
+            let tmp = PrisonsSlim {
+                prison_id: v.prison_id,
+                full_name: format!("{} {}", v.first_name, v.last_name),
+            };
+            prison_vec.push(tmp);
+        }
+        Ok(prison_vec)
+    }
     pub fn find_all() -> Result<Vec<PrisonsSlim>, ApiError> {
         let conn = db::connection()?;
+
         let prison_list: Vec<Prisons> = sql_query("SELECT * FROM prisons ORDER BY prison_id")
             .load(&conn)?;
         let mut prison_vec = vec![];
